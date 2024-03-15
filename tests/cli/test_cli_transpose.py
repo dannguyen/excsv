@@ -21,7 +21,9 @@ Chaz,101
 
 def test_cli_transpose(input_file):
     runner = CliRunner()
-    result = runner.invoke(cli, ["transpose",  str(input_file)])
+    result = runner.invoke(cli, ["transpose", str(input_file)])
     assert result.exit_code == 0
-    assert "name,Alice,Bob,Chaz" in result.output, "transpose result first row is the first header and its values"
+    assert (
+        "name,Alice,Bob,Chaz" in result.output
+    ), "transpose result first row is the first header and its values"
     assert "age,42,9,101" in result.output

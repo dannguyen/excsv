@@ -27,7 +27,9 @@ def test_cli_infer(input_file):
     runner = CliRunner()
     result = runner.invoke(cli, ["infer", str(input_file)])
     assert result.exit_code == 0
-    assert "fieldname,datatype\n" in result.output, "infer outputs the headers fieldname and datatype"
+    assert (
+        "fieldname,datatype\n" in result.output
+    ), "infer outputs the headers fieldname and datatype"
     assert "name,str" in result.output
     assert "age,int" in result.output
     assert "improv rate,float" in result.output

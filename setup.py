@@ -1,7 +1,7 @@
 from setuptools import setup
 import os
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 
 def get_long_description():
@@ -14,7 +14,7 @@ def get_long_description():
 
 setup(
     name="excsv",
-    description="little utility for skimming CSV files from the command line",
+    description="A command-line utility for converting CSV files into Excel sheets.",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Dan Nguyen",

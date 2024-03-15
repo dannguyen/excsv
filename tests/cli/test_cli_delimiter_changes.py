@@ -2,6 +2,7 @@ import pytest
 from click.testing import CliRunner
 from excsv.cli import cli
 
+
 @pytest.fixture
 def input_file(tmp_path):
     d = tmp_path / "sub"
@@ -34,7 +35,6 @@ Chaz\t101
     return p
 
 
-
 def test_cli_reads_different_delimiters(input_tsv_file):
     runner = CliRunner()
     result = runner.invoke(cli, ["cleanspace", "-d", "\t", str(input_tsv_file)])
@@ -53,7 +53,9 @@ def test_cli_outputs_different_delimiters(input_file):
 
 def test_cli_inputs_outputs_different_delimiters(input_tsv_file):
     runner = CliRunner()
-    result = runner.invoke(cli, ["cleanspace", "-D", "&", "-d", "\t", str(input_tsv_file)])
+    result = runner.invoke(
+        cli, ["cleanspace", "-D", "&", "-d", "\t", str(input_tsv_file)]
+    )
     assert result.exit_code == 0
     assert "name&age" in result.output
     assert "Alice&42" in result.output
