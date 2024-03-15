@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 from click.testing import CliRunner
-from csvskim.cli import cli
+from excsv.cli import cli
 import csv
 
 

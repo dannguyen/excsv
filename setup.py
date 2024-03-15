@@ -13,23 +13,23 @@ def get_long_description():
 
 
 setup(
-    name="csvskim",
+    name="excsv",
     description="little utility for skimming CSV files from the command line",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Dan Nguyen",
-    url="https://github.com/dannguyen/csvskim",
+    url="https://github.com/dannguyen/excsv",
     project_urls={
-        "Issues": "https://github.dannguyen/dannguyen/csvskim/issues",
-        "CI": "https://github.com/simonw/csvskim/actions",
-        "Changelog": "https://github.com/dannguyen/csvskim/releases",
+        "Issues": "https://github.dannguyen/dannguyen/excsv/issues",
+        "CI": "https://github.com/simonw/excsv/actions",
+        "Changelog": "https://github.com/dannguyen/excsv/releases",
     },
     license="Apache License, Version 2.0",
     version=VERSION,
-    packages=["csvskim"],
+    packages=["excsv"],
     entry_points="""
         [console_scripts]
-        csvskim=csvskim.cli:cli
+        excsv=excsv.cli:cli
     """,
     install_requires=["click"],
 #    extras_require={"test": ["pytest", "pytest-icdiff", "cogapp", "PyYAML", "ruff"]},

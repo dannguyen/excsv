@@ -1,6 +1,6 @@
 import pytest
 from click.testing import CliRunner
-from csvskim.cli import cli
+from excsv.cli import cli
 
 def test_help_option():
     runner = CliRunner()

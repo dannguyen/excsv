@@ -1,4 +1,4 @@
-# csvskim
+# excsv
 
 A command-line utility for quickly inspecting CSV files 
 
@@ -8,7 +8,7 @@ Install this tool using `pip`:
 
 
 ```bash
-pip install csvskim
+pip install excsv
 ```
 
 
