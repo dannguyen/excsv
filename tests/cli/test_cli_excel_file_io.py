@@ -29,12 +29,13 @@ def mock_text_to_excel_book_function(mocker):
     mocker.patch("excsv.cli.text_to_excel_book", new=mock_text_to_excel_book)
 
 
+@pytest.mark.alpha
 def test_excel_with_file_input_and_file_output(input_file):
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
             cli,
-            ["excel", "--input-path", str(input_file), "--output-path", "test.xlsx"],
+            ["excel", str(input_file), "--output-path", "test.xlsx"],
         )
         assert result.exit_code == 0
         with open("test.xlsx", "rb") as f:
@@ -50,7 +51,6 @@ def test_excel_with_file_input(input_file):
             cli,
             [
                 "excel",
-                "--input-path",
                 str(input_file),
             ],
         )
@@ -73,8 +73,10 @@ def test_excel_with_file_output(input_file):
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
-            cli, ["excel", "--input-path", input_file, "--output-path", "test.xlsx"]
+            cli, ["excel", str(input_file),  "--output-path", "test.xlsx", ]
         )
+        assert result.exit_code == 0
+
         with open("test.xlsx", "rb") as f:
             content = f.read()
             assert content == b"Mock Excel Content"
@@ -83,6 +85,6 @@ def test_excel_with_file_output(input_file):
 # Test when output_path is stdout
 def test_excel_with_stdout_output(mocker, input_file):
     runner = CliRunner()
-    result = runner.invoke(cli, ["excel", "--input-path", str(input_file)])
+    result = runner.invoke(cli, ["excel", str(input_file)])
     assert result.exit_code == 0
     assert b"Mock Excel Content" in result.stdout_bytes

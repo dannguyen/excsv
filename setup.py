@@ -1,7 +1,7 @@
 from setuptools import setup
 import os
 
-VERSION = "0.1"
+VERSION = "0.1.1"
 
 
 def get_long_description():
@@ -21,7 +21,7 @@ setup(
     url="https://github.com/dannguyen/excsv",
     project_urls={
         "Issues": "https://github.dannguyen/dannguyen/excsv/issues",
-        "CI": "https://github.com/simonw/excsv/actions",
+        "CI": "https://github.com/dannguyen/excsv/actions",
         "Changelog": "https://github.com/dannguyen/excsv/releases",
     },
     license="Apache License, Version 2.0",
@@ -33,6 +33,6 @@ setup(
     """,
     install_requires=["click"],
     #    extras_require={"test": ["pytest", "pytest-icdiff", "cogapp", "PyYAML", "ruff"]},
-    extras_require={"test": ["pytest"]},
+    extras_require={"test": ["pytest", "pytest-mock"]},
     python_requires=">=3.8",
 )

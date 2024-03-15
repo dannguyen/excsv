@@ -1,5 +1,5 @@
 import pytest
-from excsv.lib import text_to_excel_book
+from excsv.utils.excel import text_to_excel_book
 
 import csv
 from io import StringIO, BytesIO
@@ -26,7 +26,7 @@ Chaz,101
 def input_csv_text(input_file):
     return open(input_file, "r")
 
-
+@pytest.mark.alpha
 def test_text_to_excel_book(input_csv_text):
     csv_reader = csv.reader(input_csv_text)
     excel_bytes_io = text_to_excel_book(csv_reader, frozen_row=1, frozen_col=2)
@@ -45,7 +45,7 @@ def test_text_to_excel_book(input_csv_text):
     assert sheet.freeze_panes == "B2", "Verify the default row/col is frozen"
     assert sheet.auto_filter.ref == sheet.dimensions, "Verify auto filter is applied"
 
-
+@pytest.mark.alpha
 def test_gemini_text_to_excel_book(input_file):
     """gemini's version of a pytest (blah!)"""
 
