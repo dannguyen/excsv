@@ -96,7 +96,7 @@ def load_option_output_path(output_type="text"):
 
 
 @click.version_option()
-@click.group(cls=DefaultGroup, default="excel", default_if_no_args=True)
+@click.group(cls=DefaultGroup, default="excel", default_if_no_args=False)
 def cli():
     pass
 

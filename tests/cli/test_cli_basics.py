@@ -100,7 +100,7 @@ def test_default_excsv_call_stdout_with_no_subcommand(input_file):
         assert sheet["A2"].value == "Alice"
         assert sheet["B2"].value == "42"
 
-
+@pytest.mark.alpha("this breaks because we want excsv to NOT default to Excel when there are zero arguments")
 def test_default_excsv_call_stdin_stdout(input_file):
     """
     $ cat mydata.csv | excsv > mysheet.xlsx

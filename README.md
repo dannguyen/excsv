@@ -23,11 +23,15 @@ excsv mydata.csv > mysheet.xlsx
 excsv mydata.csv -o mysheet.xlsx
 
 # or full unix style
+# no this is bad
 cat mydata.csv | excsv > mysheet.xlsx
 ```
 
 
 ## Notes and TODOS
+
+
+TKTK: Need to decide on whether excel > stdout is worth having.
 
 ### 2024-03-15
 

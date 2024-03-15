@@ -31,7 +31,7 @@ setup(
         [console_scripts]
         excsv=excsv.cli:cli
     """,
-    install_requires=["click"],
+    install_requires=["click", "openpyxl"],
     #    extras_require={"test": ["pytest", "pytest-icdiff", "cogapp", "PyYAML", "ruff"]},
     extras_require={"test": ["pytest", "pytest-mock"]},
     python_requires=">=3.8",
