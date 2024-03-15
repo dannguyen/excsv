@@ -32,7 +32,7 @@ setup(
         excsv=excsv.cli:cli
     """,
     install_requires=["click"],
-#    extras_require={"test": ["pytest", "pytest-icdiff", "cogapp", "PyYAML", "ruff"]},
+    #    extras_require={"test": ["pytest", "pytest-icdiff", "cogapp", "PyYAML", "ruff"]},
     extras_require={"test": ["pytest"]},
     python_requires=">=3.8",
 )
