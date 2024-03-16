@@ -39,7 +39,6 @@ setup(
         "pip",
         "pyreadline3; sys_platform == 'win32'",
     ],
-    #    extras_require={"test": ["pytest", "pytest-icdiff", "cogapp", "PyYAML", "ruff"]},
     extras_require={
         "test": [
             "pytest",
