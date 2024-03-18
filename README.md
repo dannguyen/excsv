@@ -17,13 +17,17 @@ pip install excsv
 Basic usage:
 
 ```bash
-excsv mydata.csv > mysheet.xlsx
-
-# or if you dislike unix redirect operator
+# input file as argument, output file as -o
 excsv mydata.csv -o mysheet.xlsx
 
-# or full unix style
-# no this is bad
+
+# DEPRECATED: complicates defaultgroup functionality of
+# excsv, and who wants to stdout a bunch of bytes anyway
+excsv mydata.csv > mysheet.xlsx
+
+
+======
+# DEPRECATED: excsv with no arguments is no good
 cat mydata.csv | excsv > mysheet.xlsx
 ```
 
@@ -31,9 +35,29 @@ cat mydata.csv | excsv > mysheet.xlsx
 ## Notes and TODOS
 
 
-TKTK: Need to decide on whether excel > stdout is worth having.
 
 ### 2024-03-15
+
+### Similar libraries
+
+- [deztec/csv2excel](https://github.com/deztec/csv2excel): 
+
+    > .NET command line tool to convert delimited files to Microsoft Excel format (xls/xlsx) without Microsoft Excel having to be installed.
+
+    `$ csv2excel.exe -i input.csv`
+
+- [mentax/csv2xlsx](https://github.com/mentax/csv2xlsx):
+    ~~~sh
+    $ csv2xlsx --template example/template.xlsx \
+        --sheet Sheet_1 --sheet Sheet_2 \
+        --row 2 \
+        --output result.xlsx data.csv data2.csv`
+    ~~~
+
+### TODOS 2024-03-15
+
+- Use write_only mode for faster performance: https://openpyxl.readthedocs.io/en/latest/optimized.html
+>>>>>>> 9a8c8b5 (f)
 
 - Rudimentary functionality as I decide whether or not to implement features that are already done best in xsv and csvkit.
 
