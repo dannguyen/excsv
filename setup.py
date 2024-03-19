@@ -1,7 +1,7 @@
 from setuptools import setup
 import os
 
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 
 
 def get_long_description():
@@ -32,7 +32,9 @@ setup(
         excsv=excsv.cli:cli
     """,
     install_requires=[
-        "click",
+        "click>=8.1",
+        "hyperloglog",
+        "rich_click",
         "openpyxl",
         "click-default-group>=1.2.3",
         "setuptools",

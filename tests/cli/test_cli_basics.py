@@ -54,7 +54,7 @@ def test_default_excsv_call_with_no_subcommand(input_file):
             cli,
             [
                 str(input_file),
-                "--output-path",
+                "-o",
                 test_out_path,
             ],
         )
@@ -75,7 +75,7 @@ def test_default_excsv_call_with_no_subcommand(input_file):
             assert sheet["A4"].value == "Chaz"
             assert sheet["B4"].value == "101"
 
-
+@pytest.mark.skip("excel to stdout deprecated")
 def test_default_excsv_call_stdout_with_no_subcommand(input_file):
     """
     As shown in README.md
@@ -101,12 +101,10 @@ def test_default_excsv_call_stdout_with_no_subcommand(input_file):
         assert sheet["B2"].value == "42"
 
 
-@pytest.mark.alpha(
-    "this breaks because we want excsv to NOT default to Excel when there are zero arguments"
-)
+@pytest.mark.alpha
 def test_default_excsv_call_stdin_stdout(input_file):
     """
-    $ cat mydata.csv | excsv > mysheet.xlsx
+    $ cat mydata.csv | excsv -o mysheet.xlsx
     """
     runner = CliRunner()
 
@@ -114,10 +112,7 @@ def test_default_excsv_call_stdin_stdout(input_file):
         test_out_path = "mysheet.xlsx"
 
         with input_file.open("r") as infile:
-            result = runner.invoke(cli, input=infile.read())
-
-        with open(test_out_path, "wb") as output_file:
-            output_file.write(result.stdout_bytes)
+            result = runner.invoke(cli, ["-o", test_out_path], input=infile.read())
 
         assert result.exit_code == 0
 

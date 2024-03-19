@@ -21,18 +21,16 @@ Basic usage:
 excsv mydata.csv -o mysheet.xlsx
 
 
-# DEPRECATED: complicates defaultgroup functionality of
-# excsv, and who wants to stdout a bunch of bytes anyway
-excsv mydata.csv > mysheet.xlsx
-
-
-======
-# DEPRECATED: excsv with no arguments is no good
-cat mydata.csv | excsv > mysheet.xlsx
+cat mydata.csv | excsv -o mysheet.xlsx
 ```
 
 
 ## Notes and TODOS
+
+### 2024-03-19
+
+- consider switching openpyxl to xlswriter for creating excel files: https://xlsxwriter.readthedocs.io/working_with_memory.html
+    - use openpyxl for testing only
 
 
 
@@ -86,6 +84,10 @@ Things to add:
 - `head/tail`:
     - quickly inspect the first/last few rows
 
+
+- `probe`:
+    - add min, max, most common value, longest value (chars)
+    - detect file size, if large, use count-min-sketch and hyperloglog
 
 
 ## Dev and Testing

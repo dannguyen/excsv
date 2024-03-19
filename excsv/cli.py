@@ -1,7 +1,40 @@
 #!/usr/bin/env python3
 
-import click
+from functools import wraps
+from hyperloglog import HyperLogLog
 from click_default_group import DefaultGroup
+from rich_click import RichGroup
+from rich.console import Console
+
+error_console = Console(stderr=True,  style="cyan")
+
+# Custom echo function that checks quiet flag from context
+def verbose_echo(message, **kwargs):
+    ctx = click.get_current_context()
+    if ctx.obj and ctx.obj.get('quiet') is not True:
+        error_console.print(message)
+#        click.secho(message, err=True, **kwargs)
+
+def load_quiet_option(func):
+    """Decorator to add a quiet option to a command."""
+    @click.option('--quiet', '-q', is_flag=True, help="Silence verbose stderr output.")
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        quiet = kwargs.pop('quiet', False)
+        ctx = click.get_current_context()
+        ctx.ensure_object(dict)
+        ctx.obj['quiet'] = quiet
+        return func(*args, **kwargs)
+    return wrapper
+
+
+
+class DefaultRichGroup(DefaultGroup, RichGroup):
+    """Make `click-default-group` work with `rick-click`."""
+
+
+
+import rich_click as click
 
 import csv
 import re
@@ -15,19 +48,18 @@ from .utils.listing import slice_input, transpose_list_of_lists
 from .utils.text import clean_whitespace
 
 
-def load_arg_input_file(fn):
-    return click.argument(
-        "input_file", nargs=1, type=click.File("r"), default="-", required=False
-    )(fn)
+def callback_tab_to_str(ctx, param, value):
+    if value is not None:
+        return value.encode().decode("unicode-escape")
+    return value
 
 
-def init_csv_reader(
-    infile: TextIO, delimiter: str, dict_mode: bool = False
-) -> Union[csv.reader, csv.DictReader]:
-    if dict_mode is True:
-        return csv.DictReader(infile, delimiter=delimiter)
-    else:
-        return csv.reader(infile, delimiter=delimiter)
+def init_csv_reader(infile: TextIO, delimiter: str) -> csv.reader:
+    return csv.reader(infile, delimiter=delimiter)
+
+def init_csv_dict_reader(infile: TextIO, delimiter: str) -> csv.DictReader:
+    return csv.DictReader(infile, delimiter=delimiter)
+
 
 
 def init_csv_writer(outfile: TextIO, delimiter: str) -> csv.writer:
@@ -40,6 +72,12 @@ def init_csv_dict_writer(
     return csv.DictWriter(outfile, delimiter=delimiter, fieldnames=fieldnames)
 
 
+
+def load_arg_input_file(fn):
+    return click.argument(
+        "input_file", nargs=1, type=click.File("r"), default="-", required=False
+    )(fn)
+
 def load_option_delimiter_in(fn):
     return click.option(
         "--delimiter",
@@ -49,6 +87,7 @@ def load_option_delimiter_in(fn):
         required=False,
         show_default=True,
         type=str,
+        callback=callback_tab_to_str,
     )(fn)
 
 
@@ -60,7 +99,8 @@ def load_option_delimiter_out(fn):
         help=f"The field delimiter in the output CSV data.",
         required=False,
         show_default=True,
-        type=str,
+        type=click.STRING,
+        callback=callback_tab_to_str,
     )(fn)
 
 
@@ -74,7 +114,7 @@ def load_option_output_path(output_type="text"):
         return click.option(
             "--output-path",
             "-o",
-            default="-",
+            default='-',
             help=f"Set the path of the output file. Default is sending {output_type} to stdout.",
             required=False,
             show_default=False,
@@ -96,7 +136,7 @@ def load_option_output_path(output_type="text"):
 
 
 @click.version_option()
-@click.group(cls=DefaultGroup, default="excel", default_if_no_args=False)
+@click.group(cls=DefaultRichGroup, default="excel", default_if_no_args=True)
 def cli():
     pass
 
@@ -125,7 +165,15 @@ def cleanspace(input_file, output_path, delimiter, out_delimiter):
 @cli.command()
 @load_option_delimiter_in
 @load_arg_input_file
-@load_option_output_path(output_type="bytes")
+@load_quiet_option
+@click.option(
+        "--output-path",
+        "-o",
+        help=f"Set the path of the output Excel file",
+        required=True,
+#        type=click.File('wb'),
+        type=click.Path(dir_okay=False, path_type=Path, resolve_path=True)
+)
 def excel(input_file, output_path, delimiter):
     """
     Convert a CSV into a friendly readable Excel file
@@ -133,12 +181,11 @@ def excel(input_file, output_path, delimiter):
     incsv = init_csv_reader(input_file, delimiter=delimiter)
     outbytes = text_to_excel_book(incsv)
 
-    # with open(output_path, 'wb') as outfile:
-    if output_path is sys.stdout:
-        output_path.buffer.write(outbytes.getvalue())
-    else:
-        output_path.write(outbytes.getvalue())
+    with open(output_path, 'wb') as wfile:
+        wfile.write(outbytes.getvalue())
 
+    verbose_echo(f"Wrote Excel file to:")
+    verbose_echo(click.format_filename(output_path))
 
 @cli.command()
 @load_option_delimiter_in
@@ -150,7 +197,7 @@ def infer(input_file, output_path, delimiter, out_delimiter):
     Infer the data types for each column
     """
 
-    incsv = init_csv_reader(input_file, dict_mode=True, delimiter=delimiter)
+    incsv = init_csv_dict_reader(input_file, delimiter=delimiter)
 
     inferred = infer_column_types(incsv)
     outs = [["fieldname", "datatype"]]
@@ -160,6 +207,54 @@ def infer(input_file, output_path, delimiter, out_delimiter):
     out_csv = init_csv_writer(output_path, delimiter=out_delimiter)
     for row in outs:
         out_csv.writerow(row)
+
+
+
+
+@cli.command()
+@load_option_delimiter_in
+@load_option_delimiter_out
+@load_arg_input_file
+@load_option_output_path()
+def probe(input_file, output_path, delimiter, out_delimiter):
+
+    incsv = init_csv_dict_reader(input_file, delimiter=delimiter)
+    row_count = 0
+    headers = incsv.fieldnames
+    # col_count = len(headers)
+
+    column_metadata = {
+        header: {"name": header, "position": i,  "blanks": 0, "cardinality": HyperLogLog(0.01),}
+        for i, header in enumerate(headers)
+    }
+
+    # Process each row
+    for row in incsv:
+        row_count += 1
+
+        for header, value in row.items():
+            column_metadata[header]["cardinality"].add(value)
+            if value in ["", ]:  # Define other criteria for blank or N/A as needed
+                column_metadata[header]["blanks"] += 1
+
+
+
+    # error_console.print(f"Number of rows: {row_count}")
+    # error_console.print(f"Number of columns: {col_count}")
+
+    out_data = []
+    for col in column_metadata.values():
+        col['cardinality'] = len(col['cardinality'])
+        out_data.append(col)
+
+
+    out_headers = out_data[0].keys()
+    outcsv = init_csv_dict_writer(output_path, delimiter=out_delimiter, fieldnames=out_headers)
+    outcsv.writeheader()
+    outcsv.writerows(out_data)
+
+
+
 
 
 @cli.command()
@@ -229,10 +324,25 @@ def transpose(input_file, output_path, delimiter, out_delimiter):
     Returns a transposed version of the CSV file
     """
     incsv = init_csv_reader(input_file, delimiter=delimiter)
-
     out_csv = init_csv_writer(output_path, delimiter=out_delimiter)
-    for row in transpose_list_of_lists(incsv):
+
+
+    """
+    Converts:
+        [                         to:      [
+            ["name", "region"],               ["name", "Alice", "Bob", "Chaz"],
+            ["Alice", "North"],               ["region", "North", "North", "South"],
+            ["Bob",  "North"],             ]
+            ["Chaz", "South"],
+
+        ]
+    """
+
+    for row in zip(*incsv):
         out_csv.writerow(row)
+
+
+
 
 
 @cli.command()

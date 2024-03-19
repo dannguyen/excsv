@@ -52,19 +52,24 @@ def test_excel_with_file_input(input_file):
             [
                 "excel",
                 str(input_file),
+                 "-o", "test.xlsx"
             ],
         )
         assert result.exit_code == 0
-        assert "Mock Excel Content" in result.output
+        with open("test.xlsx", "rb") as f:
+            content = f.read()
+            assert content == b"Mock Excel Content"
 
 
 # Test when input_path is stdin
 def test_excel_with_stdin_input(mocker, input_file):
     runner = CliRunner()
     with input_file.open("r") as infile:
-        result = runner.invoke(cli, ["excel"], input=infile.read())
+        result = runner.invoke(cli, ["excel",  "-o", "test.xlsx"], input=infile.read(),)
         assert result.exit_code == 0
-        assert "Mock Excel Content" in result.output
+        with open("test.xlsx", "rb") as f:
+            content = f.read()
+            assert content == b"Mock Excel Content"
 
 
 # Test when output_path is a file
@@ -88,6 +93,7 @@ def test_excel_with_file_output(input_file):
 
 
 # Test when output_path is stdout
+@pytest.mark.skip("Excel stdout deprecated")
 def test_excel_with_stdout_output(mocker, input_file):
     runner = CliRunner()
     result = runner.invoke(cli, ["excel", str(input_file)])
