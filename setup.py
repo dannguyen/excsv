@@ -1,7 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
-VERSION = "0.1.3"
+VERSION = "0.1.3.1"
 
 
 def get_long_description():
@@ -26,7 +26,7 @@ setup(
     },
     license="Apache License, Version 2.0",
     version=VERSION,
-    packages=["excsv"],
+    packages=find_packages(exclude=["tests", "tests.*"]),
     entry_points="""
         [console_scripts]
         excsv=excsv.cli:cli
