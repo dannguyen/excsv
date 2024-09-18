@@ -27,6 +27,14 @@ cat mydata.csv | excsv -o mysheet.xlsx
 
 ## Notes and TODOS
 
+### 2024-09
+- cleaned up CLI a little bit
+
+csv-to-workbook
+- use pandas to open CSV as dataframe by default, then use pandas typecasting to define excel data types
+- figure out API for letting user define workbook styles
+- Writing and styling the excel workbook is done in the most naive and inefficient way (i.e. looping through for writing data and styling each cell)
+
 ### 2024-03-19
 
 - consider switching openpyxl to xlswriter for creating excel files: https://xlsxwriter.readthedocs.io/working_with_memory.html

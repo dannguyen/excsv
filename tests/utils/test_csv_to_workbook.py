@@ -1,5 +1,5 @@
 import pytest
-from excsv.utils.excel import text_to_excel_book
+from excsv.utils.excel import csv_to_workbook
 
 import csv
 from io import StringIO, BytesIO
@@ -27,10 +27,12 @@ def input_csv_text(input_file):
     return open(input_file, "r")
 
 
+
+
 @pytest.mark.alpha
-def test_text_to_excel_book(input_csv_text):
+def test_csv_to_workbook(input_csv_text):
     csv_reader = csv.reader(input_csv_text)
-    excel_bytes_io = text_to_excel_book(csv_reader, frozen_row=1, frozen_col=2)
+    excel_bytes_io = csv_to_workbook(csv_reader, frozen_row=1, frozen_col=2)
     wb = load_workbook(excel_bytes_io)
     sheet = wb.active
 
@@ -46,14 +48,32 @@ def test_text_to_excel_book(input_csv_text):
     assert sheet.freeze_panes == "B2", "Verify the default row/col is frozen"
 
 
+@pytest.mark.alpha(
+    """
+    Write-only openpyxl does not appear to support sheet.dimensions attribute; i.e. have to write data, then apply filter
+    maybe make write-only an 'efficient' option?
 
-
-
-@pytest.mark.skip("Write-only openpyxl does not appear to support sheet.dimensions attribute; maybe make write-only an 'efficient' option?"  )
-def test_text_to_excel_book_auto_filter(input_csv_text):
+    For now, we set openpyxl.workbook(write_only) to False, and apply autofilter after the data has been written
+    to the sheet
+    """
+)
+def test_csv_to_workbook_auto_filter(input_csv_text):
     csv_reader = csv.reader(input_csv_text)
-    excel_bytes_io = text_to_excel_book(csv_reader, frozen_row=1, frozen_col=2)
+    excel_bytes_io = csv_to_workbook(csv_reader, frozen_row=1, frozen_col=2)
     wb = load_workbook(excel_bytes_io)
     sheet = wb.active
 
     assert sheet.auto_filter.ref == sheet.dimensions, "Verify auto filter is applied"
+
+
+@pytest.mark.skip
+def test_csv_to_workbook_set_default_header_styles(input_csv_text):
+    assert 1 is 0
+
+@pytest.mark.skip
+def test_csv_to_workbook_enforce_max_column_width(input_csv_text):
+    assert 1 is 0
+
+@pytest.mark.skip
+def test_csv_to_workbook_enforce_min_column_width(input_csv_text):
+    assert 1 is 0
