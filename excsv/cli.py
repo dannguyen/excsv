@@ -6,46 +6,21 @@ from click_default_group import DefaultGroup
 from rich_click import RichGroup
 from rich.console import Console
 
-error_console = Console(stderr=True,  style="cyan")
-
-# Custom echo function that checks quiet flag from context
-def verbose_echo(message, **kwargs):
-    ctx = click.get_current_context()
-    if ctx.obj and ctx.obj.get('quiet') is not True:
-        error_console.print(message)
-#        click.secho(message, err=True, **kwargs)
-
-def load_quiet_option(func):
-    """Decorator to add a quiet option to a command."""
-    @click.option('--quiet', '-q', is_flag=True, help="Silence verbose stderr output.")
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        quiet = kwargs.pop('quiet', False)
-        ctx = click.get_current_context()
-        ctx.ensure_object(dict)
-        ctx.obj['quiet'] = quiet
-        return func(*args, **kwargs)
-    return wrapper
-
-
-
-class DefaultRichGroup(DefaultGroup, RichGroup):
-    """Make `click-default-group` work with `rick-click`."""
-
-
 
 import rich_click as click
-
 import csv
 import re
 from pathlib import Path
 from typing import TextIO, List, Union
 import sys
 
-from .utils.excel import text_to_excel_book
+from .utils.excel import csv_to_workbook
 from .utils.infer import infer_column_types
 from .utils.listing import slice_input, transpose_list_of_lists
 from .utils.text import clean_whitespace
+
+
+error_console = Console(stderr=True, style="cyan")
 
 
 def callback_tab_to_str(ctx, param, value):
@@ -54,12 +29,68 @@ def callback_tab_to_str(ctx, param, value):
     return value
 
 
+COMMON_CLICK_FLAGS = {
+    "input_file_arg": click.argument(
+        "input_file", nargs=1, type=click.File("r"), default="-", required=False
+    ),
+    "delimiter": click.option(
+        "--delimiter",
+        "-d",
+        default=",",
+        help=f"The field delimiter in the input CSV data.",
+        required=False,
+        show_default=True,
+        type=str,
+        callback=callback_tab_to_str,
+    ),
+    "out-delimiter": click.option(
+        "--out-delimiter",
+        "-D",
+        default=",",
+        help=f"The field delimiter in the output CSV data.",
+        required=False,
+        show_default=True,
+        type=click.STRING,
+        callback=callback_tab_to_str,
+    ),
+}
+
+
+# Custom echo function that checks quiet flag from context
+def verbose_echo(message, **kwargs):
+    ctx = click.get_current_context()
+    if ctx.obj and ctx.obj.get("quiet") is not True:
+        error_console.print(message)
+
+
+#        click.secho(message, err=True, **kwargs)
+
+
+def load_quiet_option(func):
+    """Decorator to add a quiet option to a command."""
+
+    @click.option("--quiet", "-q", is_flag=True, help="Silence verbose stderr output.")
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        quiet = kwargs.pop("quiet", False)
+        ctx = click.get_current_context()
+        ctx.ensure_object(dict)
+        ctx.obj["quiet"] = quiet
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+class DefaultRichGroup(DefaultGroup, RichGroup):
+    """Make `click-default-group` work with `rick-click`."""
+
+
 def init_csv_reader(infile: TextIO, delimiter: str) -> csv.reader:
     return csv.reader(infile, delimiter=delimiter)
 
+
 def init_csv_dict_reader(infile: TextIO, delimiter: str) -> csv.DictReader:
     return csv.DictReader(infile, delimiter=delimiter)
-
 
 
 def init_csv_writer(outfile: TextIO, delimiter: str) -> csv.writer:
@@ -72,36 +103,20 @@ def init_csv_dict_writer(
     return csv.DictWriter(outfile, delimiter=delimiter, fieldnames=fieldnames)
 
 
-
-def load_arg_input_file(fn):
-    return click.argument(
-        "input_file", nargs=1, type=click.File("r"), default="-", required=False
-    )(fn)
-
-def load_option_delimiter_in(fn):
-    return click.option(
-        "--delimiter",
-        "-d",
-        default=",",
-        help=f"The field delimiter in the input CSV data.",
-        required=False,
-        show_default=True,
-        type=str,
-        callback=callback_tab_to_str,
-    )(fn)
+### decorators
+def shared_csv_opts(fn):
+    for oname in ("input_file_arg", "delimiter", "out-delimiter"):
+        fn = COMMON_CLICK_FLAGS[oname](fn)
+    return fn
 
 
-def load_option_delimiter_out(fn):
-    return click.option(
-        "--out-delimiter",
-        "-D",
-        default=",",
-        help=f"The field delimiter in the output CSV data.",
-        required=False,
-        show_default=True,
-        type=click.STRING,
-        callback=callback_tab_to_str,
-    )(fn)
+def shared_excel_opts(fn):
+    for oname in (
+        "input_file_arg",
+        "delimiter",
+    ):
+        fn = COMMON_CLICK_FLAGS[oname](fn)
+    return fn
 
 
 def load_option_output_path(output_type="text"):
@@ -114,7 +129,7 @@ def load_option_output_path(output_type="text"):
         return click.option(
             "--output-path",
             "-o",
-            default='-',
+            default="-",
             help=f"Set the path of the output file. Default is sending {output_type} to stdout.",
             required=False,
             show_default=False,
@@ -124,17 +139,6 @@ def load_option_output_path(output_type="text"):
     return decorator
 
 
-## not yet implemented
-# def load_option_line_numbers(fn):
-#     return click.option(
-#     "--line-numbers",
-#     "-l",
-#     default=0,
-#     type=int,
-#     help="Prepend a column named __line_number__ to each row that indicates the row number in the output data. Starts at 0 by default",
-# )(fn)
-
-
 @click.version_option()
 @click.group(cls=DefaultRichGroup, default="excel", default_if_no_args=True)
 def cli():
@@ -142,9 +146,7 @@ def cli():
 
 
 @cli.command()
-@load_option_delimiter_in
-@load_option_delimiter_out
-@load_arg_input_file
+@shared_csv_opts
 @load_option_output_path()
 def cleanspace(input_file, output_path, delimiter, out_delimiter):
     """
@@ -163,34 +165,7 @@ def cleanspace(input_file, output_path, delimiter, out_delimiter):
 
 
 @cli.command()
-@load_option_delimiter_in
-@load_arg_input_file
-@load_quiet_option
-@click.option(
-        "--output-path",
-        "-o",
-        help=f"Set the path of the output Excel file",
-        required=True,
-#        type=click.File('wb'),
-        type=click.Path(dir_okay=False, path_type=Path, resolve_path=True)
-)
-def excel(input_file, output_path, delimiter):
-    """
-    Convert a CSV into a friendly readable Excel file
-    """
-    incsv = init_csv_reader(input_file, delimiter=delimiter)
-    outbytes = text_to_excel_book(incsv)
-
-    with open(output_path, 'wb') as wfile:
-        wfile.write(outbytes.getvalue())
-
-    verbose_echo(f"Wrote Excel file to:")
-    verbose_echo(click.format_filename(output_path))
-
-@cli.command()
-@load_option_delimiter_in
-@load_option_delimiter_out
-@load_arg_input_file
+@shared_csv_opts
 @load_option_output_path()
 def infer(input_file, output_path, delimiter, out_delimiter):
     """
@@ -209,12 +184,8 @@ def infer(input_file, output_path, delimiter, out_delimiter):
         out_csv.writerow(row)
 
 
-
-
 @cli.command()
-@load_option_delimiter_in
-@load_option_delimiter_out
-@load_arg_input_file
+@shared_csv_opts
 @load_option_output_path()
 def probe(input_file, output_path, delimiter, out_delimiter):
 
@@ -224,7 +195,12 @@ def probe(input_file, output_path, delimiter, out_delimiter):
     # col_count = len(headers)
 
     column_metadata = {
-        header: {"name": header, "position": i,  "blanks": 0, "cardinality": HyperLogLog(0.01),}
+        header: {
+            "name": header,
+            "position": i,
+            "blanks": 0,
+            "cardinality": HyperLogLog(0.01),
+        }
         for i, header in enumerate(headers)
     }
 
@@ -234,33 +210,29 @@ def probe(input_file, output_path, delimiter, out_delimiter):
 
         for header, value in row.items():
             column_metadata[header]["cardinality"].add(value)
-            if value in ["", ]:  # Define other criteria for blank or N/A as needed
+            if value in [
+                "",
+            ]:  # Define other criteria for blank or N/A as needed
                 column_metadata[header]["blanks"] += 1
-
-
 
     # error_console.print(f"Number of rows: {row_count}")
     # error_console.print(f"Number of columns: {col_count}")
 
     out_data = []
     for col in column_metadata.values():
-        col['cardinality'] = len(col['cardinality'])
+        col["cardinality"] = len(col["cardinality"])
         out_data.append(col)
 
-
     out_headers = out_data[0].keys()
-    outcsv = init_csv_dict_writer(output_path, delimiter=out_delimiter, fieldnames=out_headers)
+    outcsv = init_csv_dict_writer(
+        output_path, delimiter=out_delimiter, fieldnames=out_headers
+    )
     outcsv.writeheader()
     outcsv.writerows(out_data)
 
 
-
-
-
 @cli.command()
-@load_option_delimiter_in
-@load_option_delimiter_out
-@load_arg_input_file
+@shared_csv_opts
 @load_option_output_path()
 @click.option(
     "--index",
@@ -315,9 +287,7 @@ if __name__ == "__main__":
 
 
 @cli.command()
-@load_option_delimiter_in
-@load_option_delimiter_out
-@load_arg_input_file
+@shared_csv_opts
 @load_option_output_path()
 def transpose(input_file, output_path, delimiter, out_delimiter):
     """
@@ -325,7 +295,6 @@ def transpose(input_file, output_path, delimiter, out_delimiter):
     """
     incsv = init_csv_reader(input_file, delimiter=delimiter)
     out_csv = init_csv_writer(output_path, delimiter=out_delimiter)
-
 
     """
     Converts:
@@ -342,13 +311,8 @@ def transpose(input_file, output_path, delimiter, out_delimiter):
         out_csv.writerow(row)
 
 
-
-
-
 @cli.command()
-@load_arg_input_file
-@load_option_delimiter_in
-@load_option_delimiter_out
+@shared_csv_opts
 @load_option_output_path()
 def testread(input_file, delimiter, out_delimiter, output_path):
 
@@ -360,5 +324,45 @@ def testread(input_file, delimiter, out_delimiter, output_path):
     output_path.write(f"Number of cols: {len(data[0])}\n")
 
 
+@cli.command()
+@shared_excel_opts
+@load_quiet_option
+@click.option(
+    "--output-path",
+    "-o",
+    help=f"Set the path of the output Excel file. Default is [input_file].xlsx",
+    required=False,
+    #        type=click.File('wb'),
+    type=click.Path(dir_okay=False, path_type=Path, resolve_path=True),
+)
+def excel(input_file, output_path, delimiter):
+    """
+    Convert a CSV into a friendly readable Excel file
+    """
+    incsv = init_csv_reader(input_file, delimiter=delimiter)
+    outbytes = csv_to_workbook(incsv)
+    if not output_path:
+        output_path = (
+            f"{input_file.name}.xlsx" if input_file.name != "<stdin>" else "stdin.xlsx"
+        )
+
+    with open(output_path, "wb") as wfile:
+        wfile.write(outbytes.getvalue())
+
+    verbose_echo(f"Wrote Excel file to:")
+    verbose_echo(click.format_filename(output_path))
+
+
 if __name__ == "__main__":
     cli()
+
+
+## not yet implemented
+# def load_option_line_numbers(fn):
+#     return click.option(
+#     "--line-numbers",
+#     "-l",
+#     default=0,
+#     type=int,
+#     help="Prepend a column named __line_number__ to each row that indicates the row number in the output data. Starts at 0 by default",
+# )(fn)

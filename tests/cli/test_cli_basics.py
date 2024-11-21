@@ -75,6 +75,7 @@ def test_default_excsv_call_with_no_subcommand(input_file):
             assert sheet["A4"].value == "Chaz"
             assert sheet["B4"].value == "101"
 
+
 @pytest.mark.skip("excel to stdout deprecated")
 def test_default_excsv_call_stdout_with_no_subcommand(input_file):
     """
