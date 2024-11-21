@@ -18,4 +18,6 @@ def transpose_list_of_lists(input_data: List[List[str]]) -> List[List[str]]:
 
         ]
     """
-    return [list(row) for row in zip(*input_data)]
+
+    for row in zip(*input_data):
+        yield list(row)
