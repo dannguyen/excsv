@@ -17,3 +17,27 @@ pip install excsv
 ## Notes
 
 2024-03-14: just a placeholder for now
+
+
+
+
+## Dev and Testing
+
+
+```sh
+# install locally
+$ pip install -e .
+
+
+# run all tests
+$ pytest
+
+# run just alpha tests
+$ pytest -m 'alpha'
+
+
+# skip alpha tests
+$ pytest -m 'not alpha'
+```
+
+
