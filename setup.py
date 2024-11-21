@@ -31,8 +31,22 @@ setup(
         [console_scripts]
         excsv=excsv.cli:cli
     """,
-    install_requires=["click", "openpyxl"],
+    install_requires=[
+        "click",
+        "openpyxl",
+        "click-default-group>=1.2.3",
+        "setuptools",
+        "pip",
+        "pyreadline3; sys_platform == 'win32'",
+    ],
     #    extras_require={"test": ["pytest", "pytest-icdiff", "cogapp", "PyYAML", "ruff"]},
-    extras_require={"test": ["pytest", "pytest-mock"]},
+    extras_require={
+        "test": [
+            "pytest",
+            "pytest-mock",
+            "black>=24.2.0",
+            "types-click",
+        ]
+    },
     python_requires=">=3.8",
 )
