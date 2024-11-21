@@ -26,6 +26,7 @@ Chaz,101
 def input_csv_text(input_file):
     return open(input_file, "r")
 
+
 @pytest.mark.alpha
 def test_text_to_excel_book(input_csv_text):
     csv_reader = csv.reader(input_csv_text)
@@ -44,6 +45,7 @@ def test_text_to_excel_book(input_csv_text):
 
     assert sheet.freeze_panes == "B2", "Verify the default row/col is frozen"
     assert sheet.auto_filter.ref == sheet.dimensions, "Verify auto filter is applied"
+
 
 @pytest.mark.alpha
 def test_gemini_text_to_excel_book(input_file):

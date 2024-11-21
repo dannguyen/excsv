@@ -1,7 +1,6 @@
 from typing import List, NoReturn
 
 
-
 def slice_input(input_data: List[List[str]], indices: List[int]) -> NoReturn:
     for i, row in enumerate(input_data):
         if i in indices:
@@ -20,4 +19,3 @@ def transpose_list_of_lists(input_data: List[List[str]]) -> List[List[str]]:
         ]
     """
     return [list(row) for row in zip(*input_data)]
-

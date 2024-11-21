@@ -61,7 +61,6 @@ def test_excel_with_file_input(input_file):
 # Test when input_path is stdin
 def test_excel_with_stdin_input(mocker, input_file):
     runner = CliRunner()
-    # mocker.patch('sys.stdin', new=TextIO(b"col1,col2\n1,2\n3,4"))
     with input_file.open("r") as infile:
         result = runner.invoke(cli, ["excel"], input=infile.read())
         assert result.exit_code == 0
@@ -73,7 +72,13 @@ def test_excel_with_file_output(input_file):
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
-            cli, ["excel", str(input_file),  "--output-path", "test.xlsx", ]
+            cli,
+            [
+                "excel",
+                str(input_file),
+                "--output-path",
+                "test.xlsx",
+            ],
         )
         assert result.exit_code == 0
 
